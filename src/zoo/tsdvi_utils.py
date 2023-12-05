@@ -98,22 +98,7 @@ def loss(reconst_loss: object, reconst_image, image, logits, labels, mu_a, log_v
               'reconstruction_loss': rec_loss, 'classification_loss': classification_loss}
     return losses
 
-def lossnorec(image, logits, labels, mu_a, log_var_a, mu_l, log_var_l, wt_ce=1e2, klwt=False,  beta_l=1, beta_a=1):
-    kl_div_s = kl_div(mu_a, log_var_a).mean()
-    kl_div_l = kl_div(mu_l, log_var_l).mean()
-    if klwt:
-        kl_wt = mu_l.shape[-1] / (image.shape[-1] *
-                                  image.shape[-2] * image.shape[-3])
-    else:
-        kl_wt = 1
-    ce_loss = torch.nn.CrossEntropyLoss()
-    classification_loss = ce_loss(logits, labels)
 
-    L = wt_ce*classification_loss + beta_l*kl_wt*kl_div_l  + beta_a*kl_wt*kl_div_s  # -log p(x,y)
-
-    losses = {'elbo': L, 'label_kl': kl_div_l, 'agnostic_kl': kl_div_s,
-                'classification_loss': classification_loss}
-    return losses
 
 
 def inner_adapt_trident(task, reconst_loss, learner, n_ways, k_shots, q_shots, adapt_steps, device, log_data: bool, args, extra):
