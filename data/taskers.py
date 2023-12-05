@@ -22,37 +22,19 @@ def gen_tasks(dataname, root, image_transforms=None, target_transforms=None, dow
     num_tasks = arguments['num_tasks']
     mode = arguments['mode']
 
-    if (dataname == 'omniglot'):
-        omniglot = Omniglotmix(
-            root, download=download, transform=image_transforms, target_transforms=target_transforms)
-        dataset = l2l.data.MetaDataset(omniglot)
+    if (dataname == 'miniimagenet'):
+        mini = MiniImageNet(root, mode, transform=image_transforms,
+                            target_transform=target_transforms, download=download)
+
+        dataset = l2l.data.MetaDataset(mini)
 
         trans = [
             l2l.data.transforms.FusedNWaysKShots(dataset,
                                                  n=n_ways,
-                                                 k=k_shots + q_shots,
-                                                 filter_labels=classes),
+                                                 k=k_shots + q_shots),
             l2l.data.transforms.LoadData(dataset),
             l2l.data.transforms.RemapLabels(dataset),
-            l2l.data.transforms.ConsecutiveLabels(dataset),
-            l2l.vision.transforms.RandomClassRotation(
-                dataset, [0.0, 90.0, 180.0, 270.0])
-        ]
-        tasks = l2l.data.TaskDataset(dataset, task_transforms=trans, num_tasks=num_tasks)
-
-    elif (dataname == 'miniimagenet'):
-        mini = MiniImageNet(root, mode, transform=image_transforms,
-                            target_transform=target_transforms, download=download) #传递[图片，类]
-
-        dataset = l2l.data.MetaDataset(mini)#对元学习的快速映射和采样
-
-        trans = [
-            l2l.data.transforms.FusedNWaysKShots(dataset,
-                                                 n=n_ways,
-                                                 k=k_shots + q_shots), # n是标签，K是每个标签取多少个图片
-            l2l.data.transforms.LoadData(dataset),#在给定的数据集中加载示例
-            l2l.data.transforms.RemapLabels(dataset),#对n个类进行0...n的重新排序
-            l2l.data.transforms.ConsecutiveLabels(dataset)#
+            l2l.data.transforms.ConsecutiveLabels(dataset)
         ]
         tasks = l2l.data.TaskDataset(dataset, task_transforms=trans, num_tasks=num_tasks)
 
